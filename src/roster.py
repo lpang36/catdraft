@@ -96,4 +96,4 @@ class Roster:
         return self._id == other._id
 
     def __repr__(self):
-        return self._players
+        return f'{self._expected()}\n{self._players}'

@@ -30,44 +30,42 @@ class Player:
                 if not is_empty(i))
         if total_gp < MIN_GP:
             return output
-        age_coeff = AGE_CURVE[self.age + Player.LOOKAHEAD] / AGE_CURVE[self.age]
-        # print(self.metrics, self.gps, total_gp)
-        # might not cache if copied
+        ages = range(self.age - len(self.gps) + 1, self.age + 1)
+        age_coeff = AGE_CURVE[self.age + Player.LOOKAHEAD]
         for k, v in self.metrics.items():
             valid = 0
             mean = 0
             iscount = is_count(k)
             # could be optimized
-            for m, gp, season in zip(v, self.gps, SEASON_DECAY):
+            for m, gp, season, age in zip(v, self.gps, SEASON_DECAY, ages):
                 # this zeros by default which could be bad for negative stats
                 if is_empty(m):
                     continue
                 valid += 1
                 if iscount:
-                    mean += m * season
+                    mean += m * season / AGE_CURVE[age]
                 else:
                     mean += gp * m * season
             mean /= total_gp
-            # use age curve if counting stat
-            if iscount:
-                mean *= age_coeff
             # TODO: handle one season cases
             # TODO: should goalie wins be per game?
             var = 0
             if valid > 1:
-                for m, gp, season in zip(v, self.gps, SEASON_DECAY):
+                for m, gp, season, age in zip(v, self.gps, SEASON_DECAY, ages):
                     if is_empty(m):
                         continue
                     # TODO: verify these formulas
                     if iscount:
-                        var += (gp * season) ** 2 * (m * season / gp - mean) ** 2
+                        var += (gp * season) ** 2 * (m * season / gp / AGE_CURVE[age] - mean) ** 2
                     else:
                         var += (gp * season) ** 2 * (m * season - mean) ** 2      
                 var *= valid / (valid - 1) / total_gp ** 2
                 if iscount:
                     var *= age_coeff ** 2
+            # use age curve if counting stat
+            if iscount:
+                mean *= age_coeff
             output[k] = GaussianMetric(mean, sqrt(var)) * self.multiplier
-            # print(self, k, output[k], iscount)
         return output
 
     def __mul__(self, n):

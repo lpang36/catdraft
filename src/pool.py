@@ -47,15 +47,16 @@ class Pool:
         return self._placeholders[position]
 
     def find(self, input):
+        draftable = self.draftable_players()
         # guaranteed unique ids
-        results = [p for p in self._players.values() if \
+        results = [p for p in draftable if \
                 input.lower() == p.id.lower()]
         if len(results) > 0:
             print('Found player')
             return results[0]
         terms = input.lower().split(' ')
         # could use an actual fuzzy search here
-        results = [p for p in self._players.values() if \
+        results = [p for p in draftable if \
                 all(t in p.id.lower() for t in terms)]
         if len(results) == 0:
             print('No results found')

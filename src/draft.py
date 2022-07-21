@@ -28,11 +28,12 @@ if __name__ == '__main__':
     parser.add_argument('--nrecs', type=int, help='number of recommendations to show', default=10)
     parser.add_argument('--placeholders', action='store_true', help='whether data csv includes placeholders')
     parser.add_argument('--lookahead', type=int, help='number of years to extrapolate', default=1)
+    parser.add_argument('--separate', action='store_true', help='whether to recommend positions separately')
     args = parser.parse_args()
 
     init_utils(args)
     positions = process_positions(args.positions)
     Player.LOOKAHEAD = args.lookahead
     pool = Pool(args.data, args.countcats + args.pctcats, args.seasons, args.placeholders)
-    league = League(pool, args.order, positions, args.nrecs)
+    league = League(pool, args.order, positions, args.nrecs, args.separate)
     cProfile.run('league.draft()')
