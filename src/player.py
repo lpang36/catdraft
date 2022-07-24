@@ -47,7 +47,6 @@ class Player:
                 else:
                     mean += gp * m * season
             mean /= total_gp
-            # TODO: handle one season cases
             # TODO: should goalie wins be per game?
             var = 0
             if valid > 1:
@@ -65,8 +64,12 @@ class Player:
             # use age curve if counting stat
             if iscount:
                 mean *= age_coeff
-            output[k] = GaussianMetric(mean, sqrt(var)) * self.multiplier
+            var += (mean * VARIANCE_CURVE[valid]) ** 2
+            output[k] = GaussianMetric(mean, 0 if self.is_placeholder() else sqrt(var)) * self.multiplier
         return output
+
+    def is_placeholder(self):
+        return self.id.startswith(PLACEHOLDER_ID)
 
     def __mul__(self, n):
         cpy = copy(self)

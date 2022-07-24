@@ -5,19 +5,20 @@ from collections import defaultdict
 from copy import copy
 
 class Roster:
-    def __init__(self, id, positions):
+    def __init__(self, id, positions, autodraft):
         self._id = id
         self._positions = positions
         self._max_players = sum(positions.values())
         self._players = []
         self._position_counts = defaultdict(int)
         self._num_players = 0
+        self._autodraft = autodraft
         # TODO: support polymorphism properly
         self._cached_sums = defaultdict(GaussianMetric)
         self._num_cached = 0
 
     def _copy(self):
-        cpy = Roster(self._id, self._positions)
+        cpy = Roster(self._id, self._positions, self._autodraft)
         cpy._players = copy(self._players)
         cpy._position_counts = copy(self._position_counts)
         cpy._num_players = self._num_players
@@ -62,6 +63,8 @@ class Roster:
         return output
 
     def with_autodraft(self, autodraftees, opp, player):
+        if not self._autodraft:
+            return self
         # could be optimized
         output = self._copy()
         for p in autodraftees:

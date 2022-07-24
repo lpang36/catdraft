@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 class League:
-    def __init__(self, pool, order, positions, nrecs, separate):
+    def __init__(self, pool, order, positions, nrecs, separate, autodraft):
         self._pool = pool
         order_df = pd.read_csv(order, header=None)
         self._order = [(row[0], row[1]) if len(order_df.columns) > 1 else (row[0], None) \
@@ -19,11 +19,11 @@ class League:
         self._rosters = {}
         for i, _ in self._order:
             if i not in self._rosters:
-                self._rosters[i] = Roster(i, positions)
+                self._rosters[i] = Roster(i, positions, autodraft)
 
     def draft(self):
         for i, (r, p) in enumerate(self._order):
-            print(f'Pick {i} for {r}:')
+            print(f'Pick {i + 1} for {r}:')
             roster = self._rosters[r]
             print(roster)
             if is_empty(p):
@@ -45,6 +45,7 @@ class League:
         autodraftees = self._pool.autodraft(num_autodraft)
         players = sorted([(self._score_player(roster, p, autodraftees), p) \
                 for p in tqdm(self._short_circuit(roster))], reverse=True)
+        rank_str = lambda p: '' if is_empty(p.rank) else f' ({int(p.rank)})'
         if self._separate:
             positions = defaultdict(list)
             for p in players:
@@ -52,10 +53,18 @@ class League:
             for k, v in positions.items():
                 print(k)
                 for score, player in v[:self._nrecs]:
-                    print(f'{player}: {score}')
+                    print(f'{player}: {score}{rank_str(player)} {self._display_quantiles(player)}')
+            print('Rank')
+            for player in self._pool.autodraft(self._nrecs):
+                if not is_empty(player.rank):
+                    print(f'{player}{rank_str(player)}')
         else:
             for score, player in players[:self._nrecs]:
-                print(f'{player}: {score}')
+                print(f'{player}: {score}{rank_str(player)} {self._display_quantiles(player)}')
+
+    def _display_quantiles(self, player):
+        quantiles = self._pool.quantiles(player)
+        return sorted(quantiles.keys(), key=lambda k: quantiles[k], reverse=True)[:MAX_CATS]
 
     def _short_circuit(self, roster):
         metrics = {p: p.expected() for p in self._pool.draftable_players() \
