@@ -71,7 +71,7 @@ class Roster:
             if not p.autodrafted and p != player:
                 output.add(p)
                 p.autodrafted = True
-            if output._num_players <= self._num_players:
+            if opp._num_players < output._num_players:
                 break
         return output
 
