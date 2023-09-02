@@ -30,8 +30,8 @@ class Player:
                 if not is_empty(i))
         if total_gp < MIN_GP:
             return output
-        ages = range(self.age - len(self.gps) + 1, self.age + 1)
-        age_coeff = AGE_CURVE[self.age + Player.LOOKAHEAD]
+        ages = range(int(self.age) - len(self.gps) + 1, int(self.age) + 1)
+        age_coeff = AGE_CURVE[int(self.age) + Player.LOOKAHEAD]
         for k, v in self.metrics.items():
             valid = 0
             mean = 0
@@ -57,7 +57,7 @@ class Player:
                     if iscount:
                         var += (gp * season) ** 2 * (m * season / gp / AGE_CURVE[age] - mean) ** 2
                     else:
-                        var += (gp * season) ** 2 * (m * season - mean) ** 2      
+                        var += (gp * season) ** 2 * (m * season - mean) ** 2
                 var *= valid / (valid - 1) / total_gp ** 2
                 if iscount:
                     var *= age_coeff ** 2
